@@ -33,7 +33,7 @@ class Tetris(QMainWindow):
         # self.statusbar = self.statusBar()
         # self.tboard.msg2Statusbar[str].connect(self.statusbar.showMessage)
 
-        # self.tboard.start()
+        self.tboard.start()
 
         self.resize(180*3, 380*3)
         # self.center()
@@ -106,7 +106,7 @@ class Board(QFrame):
         self.isStarted = True
         self.isWaitingAfterLine = False
         self.numLinesRemoved = 0
-        self.clearBoard()
+        # self.clearBoard()
 
         # self.msg2Statusbar.emit(str(self.numLinesRemoved))
 
@@ -156,65 +156,102 @@ class Board(QFrame):
         #         self.drawSquare(painter, rect.left() + x * self.squareWidth(),
         #                         boardTop + (Board.BoardHeight - y - 1) * self.squareHeight(),
         #                         self.curPiece.shape())
-#
-#     def keyPressEvent(self, event):
-#         """processes key press events"""
-#
-#         if not self.isStarted or self.curPiece.shape() == Tetrominoe.NoShape:
-#             super(Board, self).keyPressEvent(event)
-#             return
-#
-#         key = event.key()
-#
-#         if key == Qt.Key_P:
-#             self.pause()
-#             return
-#
-#         if self.isPaused:
-#             return
-#
-#         elif key == Qt.Key_Left:
-#             self.tryMove(self.curPiece, self.curX - 1, self.curY)
-#
-#         elif key == Qt.Key_Right:
-#             self.tryMove(self.curPiece, self.curX + 1, self.curY)
-#
-#         elif key == Qt.Key_Down:
-#             self.tryMove(self.curPiece.rotateRight(), self.curX, self.curY)
-#
-#         elif key == Qt.Key_Up:
-#             self.tryMove(self.curPiece.rotateLeft(), self.curX, self.curY)
-#
-#         elif key == Qt.Key_Space:
-#             self.dropDown()
-#
-#         elif key == Qt.Key_D:
-#             self.oneLineDown()
-#
-#         else:
-#             super(Board, self).keyPressEvent(event)
-#
-#     def timerEvent(self, event):
-#         """handles timer event"""
-#
-#         if event.timerId() == self.timer.timerId():
-#
-#             if self.isWaitingAfterLine:
-#                 self.isWaitingAfterLine = False
-#                 self.newPiece()
-#             else:
-#                 self.oneLineDown()
-#
-#         else:
-#             super(Board, self).timerEvent(event)
+
+
+    def move(self, x, y):
+        if (x<0) or (x>=Board.BoardWidth) or (y<0) or (y>=Board.BoardHeight):
+            return
+
+        self.board = [Tetrominoe.NoShape for _ in range(Board.BoardHeight*Board.BoardWidth)]
+        self.board[(Board.BoardHeight - 1 - y)*Board.BoardWidth + x] = Tetrominoe.ZShape
+        self.curX, self.curY = x, y
+        self.update()
+
+    def keyPressEvent(self, event):
+         """processes key press events"""
+
+         # if not self.isStarted or self.curPiece.shape() == Tetrominoe.NoShape:
+         #     super(Board, self).keyPressEvent(event)
+         #     return
+
+         if not self.isStarted:
+            super(Board, self).keyPressEvent(event)
+            return
+
+         key = event.key()
+
+         if key == Qt.Key_Left:
+             self.move(self.curX - 1, self.curY)
+             # self.tryMove(self.curPiece, self.curX - 1, self.curY)
+
+         elif key == Qt.Key_Right:
+             self.move(self.curX + 1, self.curY)
+             # self.tryMove(self.curPiece, self.curX + 1, self.curY)
+
+         elif key == Qt.Key_Down:
+             self.move(self.curX, self.curY+1)
+             # self.tryMove(self.curPiece.rotateRight(), self.curX, self.curY)
+
+         elif key == Qt.Key_Up:
+             self.move(self.curX, self.curY-1)
+             # self.tryMove(self.curPiece.rotateLeft(), self.curX, self.curY)
+
+         # if key == Qt.Key_P:
+         #     self.pause()
+         #     return
+         #
+         # if self.isPaused:
+         #     return
+         #
+         # elif key == Qt.Key_Left:
+         #     self.tryMove(self.curPiece, self.curX - 1, self.curY)
+         #
+         # elif key == Qt.Key_Right:
+         #     self.tryMove(self.curPiece, self.curX + 1, self.curY)
+         #
+         # elif key == Qt.Key_Down:
+         #     self.tryMove(self.curPiece.rotateRight(), self.curX, self.curY)
+         #
+         # elif key == Qt.Key_Up:
+         #     self.tryMove(self.curPiece.rotateLeft(), self.curX, self.curY)
+         #
+         # elif key == Qt.Key_Space:
+         #     self.dropDown()
+         #
+         # elif key == Qt.Key_D:
+         #     self.oneLineDown()
+
+         else:
+             super(Board, self).keyPressEvent(event)
+
+
+     # def timerEvent(self, event):
+     #     """handles timer event"""
+     #
+     #     if event.timerId() == self.timer.timerId():
+     #
+     #         if self.isWaitingAfterLine:
+     #             self.isWaitingAfterLine = False
+     #             self.newPiece()
+     #         else:
+     #             self.oneLineDown()
+     #
+     #     else:
+     #         super(Board, self).timerEvent(event)
 #
     def clearBoard(self):
         """clears shapes from the board"""
 
         for i in range(Board.BoardHeight * Board.BoardWidth):
             self.board.append(Tetrominoe.NoShape)
-        self.board[0] = Tetrominoe.ZShape
-        self.board[(Board.BoardHeight-1)*Board.BoardWidth] = Tetrominoe.ZShape
+        # self.board[0] = Tetrominoe.ZShape
+        # self.board[(Board.BoardHeight-1)*Board.BoardWidth] = Tetrominoe.ZShape
+
+        # 움직일 수 있는 좌표를 생성
+        self.curX = Board.BoardWidth // 2
+        self.curY = Board.BoardHeight // 2
+        self.board[(Board.BoardHeight-1-self.curY)*Board.BoardWidth + self.curX] = Tetrominoe.ZShape
+
 #
 #     def dropDown(self):
 #         """drops down a shape"""
