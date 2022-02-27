@@ -30,27 +30,27 @@ class Tetris(QMainWindow):
         self.tboard = Board(self)
         self.setCentralWidget(self.tboard)
 
-        self.statusbar = self.statusBar()
-        self.tboard.msg2Statusbar[str].connect(self.statusbar.showMessage)
+        # self.statusbar = self.statusBar()
+        # self.tboard.msg2Statusbar[str].connect(self.statusbar.showMessage)
 
         # self.tboard.start()
 
         self.resize(180*3, 380*3)
-        self.center()
+        # self.center()
         self.setWindowTitle('Tetris')
         self.show()
 
-    def center(self):
-        """centers the window on the screen"""
-
-        screen = QDesktopWidget().screenGeometry()
-        size = self.geometry()
-        self.move(int((screen.width() - size.width()) / 2),
-                  int((screen.height() - size.height()) / 2))
+    # def center(self):
+    #     """centers the window on the screen"""
+    #
+    #     screen = QDesktopWidget().screenGeometry()
+    #     size = self.geometry()
+    #     self.move(int((screen.width() - size.width()) / 2),
+    #               int((screen.height() - size.height()) / 2))
 
 
 class Board(QFrame):
-    msg2Statusbar = pyqtSignal(str)
+    # msg2Statusbar = pyqtSignal(str)
 
     BoardWidth = 10
     BoardHeight = 22
@@ -76,27 +76,27 @@ class Board(QFrame):
         self.isStarted = False
         self.isPaused = False
         self.clearBoard()
-#
-#     def shapeAt(self, x, y):
-#         """determines shape at the board position"""
-#
-#         return self.board[(y * Board.BoardWidth) + x]
+
+    def shapeAt(self, x, y):
+        """determines shape at the board position"""
+
+        return self.board[(y * Board.BoardWidth) + x]
 #
 #     def setShapeAt(self, x, y, shape):
 #         """sets a shape at the board"""
 #
 #         self.board[(y * Board.BoardWidth) + x] = shape
 #
-#     def squareWidth(self):
-#         """returns the width of one square"""
-#
-#         return self.contentsRect().width() // Board.BoardWidth
-#
-#     def squareHeight(self):
-#         """returns the height of one square"""
-#
-#         return self.contentsRect().height() // Board.BoardHeight
-#
+    def squareWidth(self):
+        """returns the width of one square"""
+
+        return self.contentsRect().width() // Board.BoardWidth
+
+    def squareHeight(self):
+        """returns the height of one square"""
+
+        return self.contentsRect().height() // Board.BoardHeight
+
     def start(self):
         """starts game"""
 
@@ -108,10 +108,10 @@ class Board(QFrame):
         self.numLinesRemoved = 0
         self.clearBoard()
 
-        self.msg2Statusbar.emit(str(self.numLinesRemoved))
+        # self.msg2Statusbar.emit(str(self.numLinesRemoved))
 
         # self.newPiece()
-        self.timer.start(Board.Speed, self)
+        # self.timer.start(Board.Speed, self)
 #
 #     def pause(self):
 #         """pauses game"""
@@ -131,31 +131,31 @@ class Board(QFrame):
 #
 #         self.update()
 #
-#     def paintEvent(self, event):
-#         """paints all shapes of the game"""
-#
-#         painter = QPainter(self)
-#         rect = self.contentsRect()
-#
-#         boardTop = rect.bottom() - Board.BoardHeight * self.squareHeight()
-#
-#         for i in range(Board.BoardHeight):
-#             for j in range(Board.BoardWidth):
-#                 shape = self.shapeAt(j, Board.BoardHeight - i - 1)
-#
-#                 if shape != Tetrominoe.NoShape:
-#                     self.drawSquare(painter,
-#                                     rect.left() + j * self.squareWidth(),
-#                                     boardTop + i * self.squareHeight(), shape)
-#
-#         if self.curPiece.shape() != Tetrominoe.NoShape:
-#
-#             for i in range(4):
-#                 x = self.curX + self.curPiece.x(i)
-#                 y = self.curY - self.curPiece.y(i)
-#                 self.drawSquare(painter, rect.left() + x * self.squareWidth(),
-#                                 boardTop + (Board.BoardHeight - y - 1) * self.squareHeight(),
-#                                 self.curPiece.shape())
+    def paintEvent(self, event):
+        """paints all shapes of the game"""
+
+        painter = QPainter(self)
+        rect = self.contentsRect()
+
+        boardTop = rect.bottom() - Board.BoardHeight * self.squareHeight()
+
+        for i in range(Board.BoardHeight):
+            for j in range(Board.BoardWidth):
+                shape = self.shapeAt(j, Board.BoardHeight - i - 1)
+
+                if shape != Tetrominoe.NoShape:
+                    self.drawSquare(painter,
+                                    rect.left() + j * self.squareWidth(),
+                                    boardTop + i * self.squareHeight(), shape)
+
+        # if self.curPiece.shape() != Tetrominoe.NoShape:
+        #
+        #     for i in range(4):
+        #         x = self.curX + self.curPiece.x(i)
+        #         y = self.curY - self.curPiece.y(i)
+        #         self.drawSquare(painter, rect.left() + x * self.squareWidth(),
+        #                         boardTop + (Board.BoardHeight - y - 1) * self.squareHeight(),
+        #                         self.curPiece.shape())
 #
 #     def keyPressEvent(self, event):
 #         """processes key press events"""
@@ -213,6 +213,8 @@ class Board(QFrame):
 
         for i in range(Board.BoardHeight * Board.BoardWidth):
             self.board.append(Tetrominoe.NoShape)
+        self.board[0] = Tetrominoe.ZShape
+        self.board[(Board.BoardHeight-1)*Board.BoardWidth] = Tetrominoe.ZShape
 #
 #     def dropDown(self):
 #         """drops down a shape"""
@@ -316,25 +318,10 @@ class Board(QFrame):
 #
 #         return True
 #
-#     def drawSquare(self, painter, x, y, shape):
-#         """draws a square of a shape"""
-#
-#         colorTable = [0x000000, 0xCC6666, 0x66CC66, 0x6666CC,
-#                       0xCCCC66, 0xCC66CC, 0x66CCCC, 0xDAAA00]
-#
-#         color = QColor(colorTable[shape])
-#         painter.fillRect(x + 1, y + 1, self.squareWidth() - 2,
-#                          self.squareHeight() - 2, color)
-#
-#         painter.setPen(color.lighter())
-#         painter.drawLine(x, y + self.squareHeight() - 1, x, y)
-#         painter.drawLine(x, y, x + self.squareWidth() - 1, y)
-#
-#         painter.setPen(color.darker())
-#         painter.drawLine(x + 1, y + self.squareHeight() - 1,
-#                          x + self.squareWidth() - 1, y + self.squareHeight() - 1)
-#         painter.drawLine(x + self.squareWidth() - 1,
-#                          y + self.squareHeight() - 1, x + self.squareWidth() - 1, y + 1)
+    def drawSquare(self, painter, x, y, shape):
+        """draws a square of a shape"""
+        color = QColor(0xCC6666)
+        painter.fillRect(x, y, self.squareWidth(), self.squareHeight(), color)
 #
 #
 class Tetrominoe(object):
