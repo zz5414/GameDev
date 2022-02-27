@@ -54,7 +54,7 @@ class Board(QFrame):
 
     BoardWidth = 10
     BoardHeight = 22
-    Speed = 300
+    Speed = 1000
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -111,7 +111,7 @@ class Board(QFrame):
         # self.msg2Statusbar.emit(str(self.numLinesRemoved))
 
         # self.newPiece()
-        # self.timer.start(Board.Speed, self)
+        self.timer.start(Board.Speed, self)
 #
 #     def pause(self):
 #         """pauses game"""
@@ -225,20 +225,21 @@ class Board(QFrame):
              super(Board, self).keyPressEvent(event)
 
 
-     # def timerEvent(self, event):
-     #     """handles timer event"""
-     #
-     #     if event.timerId() == self.timer.timerId():
-     #
-     #         if self.isWaitingAfterLine:
-     #             self.isWaitingAfterLine = False
-     #             self.newPiece()
-     #         else:
-     #             self.oneLineDown()
-     #
-     #     else:
-     #         super(Board, self).timerEvent(event)
-#
+    def timerEvent(self, event):
+        """handles timer event"""
+
+        if event.timerId() == self.timer.timerId():
+            self.move(self.curX, self.curY+1)
+
+            #if self.isWaitingAfterLine:
+#                self.isWaitingAfterLine = False
+#                self.newPiece()
+#            else:
+#                self.oneLineDown()
+
+        else:
+            super(Board, self).timerEvent(event)
+
     def clearBoard(self):
         """clears shapes from the board"""
 
