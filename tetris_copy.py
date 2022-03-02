@@ -12,8 +12,10 @@ Website: zetcode.com
 import random
 import sys
 
+import numpy as np
+
 from PyQt5.QtCore import Qt, QBasicTimer, pyqtSignal
-from PyQt5.QtGui import QPainter, QColor
+from PyQt5.QtGui import QPainter, QColor, QPen
 from PyQt5.QtWidgets import QMainWindow, QFrame, QDesktopWidget, QApplication
 
 
@@ -52,9 +54,11 @@ class Tetris(QMainWindow):
 class Board(QFrame):
     # msg2Statusbar = pyqtSignal(str)
 
-    BoardWidth = 10
-    BoardHeight = 22
-    Speed = 1000
+    # BoardWidth = 10
+    # BoardHeight = 22
+    BoardWidth = 5
+    BoardHeight = 4
+    Speed = 2000
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -110,7 +114,7 @@ class Board(QFrame):
 
         # self.msg2Statusbar.emit(str(self.numLinesRemoved))
 
-        # self.newPiece()
+        self.newPiece()
         self.timer.start(Board.Speed, self)
 #
 #     def pause(self):
@@ -131,6 +135,30 @@ class Board(QFrame):
 #
 #         self.update()
 #
+
+
+    def drawGrid(self, painter):
+        pen = painter.pen()
+
+        rect = self.contentsRect()
+        painter.setPen(QPen(Qt.gray, 10))
+
+        painter.drawLine(rect.left(), rect.top(), rect.right(), rect.top())
+        painter.drawLine(rect.right(), rect.top(), rect.right(), rect.bottom())
+        painter.drawLine(rect.right(), rect.bottom(), rect.left(), rect.bottom())
+        painter.drawLine(rect.left(), rect.bottom(), rect.left(), rect.top())
+
+        for i in range(1, Board.BoardWidth):
+            x = self.squareWidth() * i
+            painter.drawLine(x, rect.top(), x, rect.bottom())
+
+        for i in range(1, Board.BoardHeight):
+            y = self.squareHeight() * i
+            painter.drawLine(rect.left(), y, rect.right(), y)
+
+        painter.setPen(pen)
+
+
     def paintEvent(self, event):
         """paints all shapes of the game"""
 
@@ -139,17 +167,20 @@ class Board(QFrame):
 
         boardTop = rect.bottom() - Board.BoardHeight * self.squareHeight()
 
-        for i in range(Board.BoardHeight):
-            for j in range(Board.BoardWidth):
-                shape = self.shapeAt(j, Board.BoardHeight - i - 1)
+        self.drawGrid(painter)
 
-                if shape != Tetrominoe.NoShape:
-                    self.drawSquare(painter,
-                                    rect.left() + j * self.squareWidth(),
-                                    boardTop + i * self.squareHeight(), shape)
-
-        # if self.curPiece.shape() != Tetrominoe.NoShape:
+        # draw bg
+        # for i in range(Board.BoardHeight):
+        #     for j in range(Board.BoardWidth):
+        #         shape = self.shapeAt(j, Board.BoardHeight - i - 1)
         #
+        #         if shape != Tetrominoe.NoShape:
+        #             self.drawSquare(painter,
+        #                             rect.left() + j * self.squareWidth(),
+        #                             boardTop + i * self.squareHeight(), shape)
+        #
+        # #draw current piece
+        # if self.curPiece.shape() != Tetrominoe.NoShape:
         #     for i in range(4):
         #         x = self.curX + self.curPiece.x(i)
         #         y = self.curY - self.curPiece.y(i)
@@ -162,7 +193,7 @@ class Board(QFrame):
         if (x<0) or (x>=Board.BoardWidth) or (y<0) or (y>=Board.BoardHeight):
             return
 
-        self.board = [Tetrominoe.NoShape for _ in range(Board.BoardHeight*Board.BoardWidth)]
+        self.board = np.zeros((Board.BoardHeight, Board.BoardWidth))
         self.board[(Board.BoardHeight - 1 - y)*Board.BoardWidth + x] = Tetrominoe.ZShape
         self.curX, self.curY = x, y
         self.update()
@@ -249,9 +280,9 @@ class Board(QFrame):
         # self.board[(Board.BoardHeight-1)*Board.BoardWidth] = Tetrominoe.ZShape
 
         # 움직일 수 있는 좌표를 생성
-        self.curX = Board.BoardWidth // 2
-        self.curY = Board.BoardHeight // 2
-        self.board[(Board.BoardHeight-1-self.curY)*Board.BoardWidth + self.curX] = Tetrominoe.ZShape
+        # self.curX = Board.BoardWidth // 2
+        # self.curY = Board.BoardHeight // 2
+        self.board[0] = Tetrominoe.ZShape
 
 #
 #     def dropDown(self):
@@ -321,20 +352,21 @@ class Board(QFrame):
 #             self.curPiece.setShape(Tetrominoe.NoShape)
 #             self.update()
 #
-#     def newPiece(self):
-#         """creates a new shape"""
-#
-#         self.curPiece = Shape()
-#         self.curPiece.setRandomShape()
-#         self.curX = Board.BoardWidth // 2 + 1
-#         self.curY = Board.BoardHeight - 1 + self.curPiece.minY()
-#
-#         if not self.tryMove(self.curPiece, self.curX, self.curY):
-#             self.curPiece.setShape(Tetrominoe.NoShape)
-#             self.timer.stop()
-#             self.isStarted = False
-#             self.msg2Statusbar.emit("Game over")
-#
+    def newPiece(self):
+        """creates a new shape"""
+
+        self.curPiece = Shape()
+        self.curPiece.setShape(Tetrominoe.SquareShape)
+        # self.curPiece.setRandomShape()
+        self.curX = Board.BoardWidth // 2 + 1
+        self.curY = Board.BoardHeight - 1 + self.curPiece.minY()
+
+        # if not self.tryMove(self.curPiece, self.curX, self.curY):
+        #     self.curPiece.setShape(Tetrominoe.NoShape)
+        #     self.timer.stop()
+        #     self.isStarted = False
+        #     self.msg2Statusbar.emit("Game over")
+
 #     def tryMove(self, newPiece, newX, newY):
 #         """tries to move a shape"""
 #
@@ -373,55 +405,55 @@ class Tetrominoe(object):
     MirroredLShape = 7
 
 
-# class Shape(object):
-#     coordsTable = (
-#         ((0, 0), (0, 0), (0, 0), (0, 0)),
-#         ((0, -1), (0, 0), (-1, 0), (-1, 1)),
-#         ((0, -1), (0, 0), (1, 0), (1, 1)),
-#         ((0, -1), (0, 0), (0, 1), (0, 2)),
-#         ((-1, 0), (0, 0), (1, 0), (0, 1)),
-#         ((0, 0), (1, 0), (0, 1), (1, 1)),
-#         ((-1, -1), (0, -1), (0, 0), (0, 1)),
-#         ((1, -1), (0, -1), (0, 0), (0, 1))
-#     )
-#
-#     def __init__(self):
-#
-#         self.coords = [[0, 0] for i in range(4)]
-#         self.pieceShape = Tetrominoe.NoShape
-#
-#         self.setShape(Tetrominoe.NoShape)
-#
-#     def shape(self):
-#         """returns shape"""
-#
-#         return self.pieceShape
-#
-#     def setShape(self, shape):
-#         """sets a shape"""
-#
-#         table = Shape.coordsTable[shape]
-#
-#         for i in range(4):
-#             for j in range(2):
-#                 self.coords[i][j] = table[i][j]
-#
-#         self.pieceShape = shape
+class Shape(object):
+    coordsTable = (
+        ((0, 0), (0, 0), (0, 0), (0, 0)),
+        ((0, -1), (0, 0), (-1, 0), (-1, 1)),
+        ((0, -1), (0, 0), (1, 0), (1, 1)),
+        ((0, -1), (0, 0), (0, 1), (0, 2)),
+        ((-1, 0), (0, 0), (1, 0), (0, 1)),
+        ((0, 0), (1, 0), (0, 1), (1, 1)),
+        ((-1, -1), (0, -1), (0, 0), (0, 1)),
+        ((1, -1), (0, -1), (0, 0), (0, 1))
+    )
+
+    def __init__(self):
+
+        self.coords = [[0, 0] for i in range(4)]
+        self.pieceShape = Tetrominoe.NoShape
+
+        self.setShape(Tetrominoe.NoShape)
+
+    def shape(self):
+        """returns shape"""
+
+        return self.pieceShape
+
+    def setShape(self, shape):
+        """sets a shape"""
+
+        table = Shape.coordsTable[shape]
+
+        for i in range(4):
+            for j in range(2):
+                self.coords[i][j] = table[i][j]
+
+        self.pieceShape = shape
 #
 #     def setRandomShape(self):
 #         """chooses a random shape"""
 #
 #         self.setShape(random.randint(1, 7))
 #
-#     def x(self, index):
-#         """returns x coordinate"""
-#
-#         return self.coords[index][0]
-#
-#     def y(self, index):
-#         """returns y coordinate"""
-#
-#         return self.coords[index][1]
+    def x(self, index):
+        """returns x coordinate"""
+
+        return self.coords[index][0]
+
+    def y(self, index):
+        """returns y coordinate"""
+
+        return self.coords[index][1]
 #
 #     def setX(self, index, x):
 #         """sets x coordinate"""
@@ -451,14 +483,14 @@ class Tetrominoe(object):
 #
 #         return m
 #
-#     def minY(self):
-#         """returns min y value"""
-#
-#         m = self.coords[0][1]
-#         for i in range(4):
-#             m = min(m, self.coords[i][1])
-#
-#         return m
+    def minY(self):
+        """returns min y value"""
+
+        m = self.coords[0][1]
+        for i in range(4):
+            m = min(m, self.coords[i][1])
+
+        return m
 #
 #     def maxY(self):
 #         """returns max y value"""
